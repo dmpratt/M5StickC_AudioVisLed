@@ -8,12 +8,26 @@ const uint8_t kPinLedStrip = 26; // M5StickC grove port, yellow cable
 const uint8_t kNumLeds = 139;
 const uint8_t kLedStripBrightness = 255;
 const uint32_t kMaxMilliamps = 2500;
-uint8_t kBassHue = 250;
-uint8_t beatVisIntensity_ = 0;
 
 /* ----- Fastled variables ----- */
 // LED strip controller
 CRGB ledStrip_[kNumLeds];
+uint8_t ledStripH[kNumLeds];
+uint8_t ledStripS[kNumLeds];
+uint8_t ledStripV[kNumLeds];
+
+uint8_t kBassHue = 250;
+uint8_t beatVisIntensity_ = 0;
+int *freqBinLightness;
+String mode = "default";
+
+/* ------ Sparkle Vars ------ */
+uint8_t sparkle_delay[3];
+uint8_t sparkle_step[3];
+uint8_t sparkle_led[3];
+uint8_t sparkle_hue[3];
+uint8_t sparkle_saturation[3];
+uint8_t sparkle_brightness[3];
 
 const uint8_t numFreqLeds = floor(kNumLeds / 2 / (kFreqBandCount + 2));                     // 100 / 2 / 22 = 2
 const uint8_t numBassLeds = floor(kNumLeds / 2) - kFreqBandCount * numFreqLeds;             // 50 - 40 = 10
@@ -42,36 +56,53 @@ void LightingProcessor::setupLedStrip()
 
 void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String modifier)
 {
-    if (!modifier.isEmpty())
-    {
-        if (modifier.indexOf('-') >= 0)
-        {
-            String key = modifier.substring(0, modifier.indexOf('-'));
-            String value = modifier.substring(modifier.indexOf('-') + 1);
-            uint8_t val_i = value.toInt();
-
-            if (key == "solid")
-            {
-                for (int i = 0; i < kNumLeds; i++)
-                {
-                    ledStrip_[i].setHSV(val_i, 255, 255);
-                }
-                FastLED.show();
-                return;
-            }
-        }
-    }
-    uint8_t ledIndex = 0;
-    kBassHue++;
+    // Update class frequency bin lightness values
+    freqBinLightness = lightness;
 
     // Detect magnitude peak
     beatVisIntensity_ = (isBeatHit) ? 250 : (beatVisIntensity_ > 0) ? beatVisIntensity_ -= 25
                                                                     : 0;
 
+    // Update mode if new mode signal received
+    if (!modifier.isEmpty())
+    {
+        mode = modifier;
+        mode.toLowerCase();
+    }
+
+    if (mode == "default" || mode == "sparkle")
+    {
+        kBassHue++;
+        mainSoundFx();
+    }
+    else if (mode.indexOf('-') >= 0)
+    {
+        String key = mode.substring(0, mode.indexOf('-'));
+        key.trim();
+        String value = mode.substring(mode.indexOf('-') + 1);
+        value.trim();
+        if (key == "solid")
+        {
+            constantFx(value);
+        }
+    }
+
+    if (mode == "sparkle")
+    {
+        sparkleFx();
+    }
+
+    FastLED.show();
+}
+
+void LightingProcessor::mainSoundFx()
+{
+    uint8_t ledIndex = 0;
+
     // Show beat detection at the beginning of the strip
     for (int i = 0; i < numBassLeds; i++)
     {
-        ledStrip_[ledIndex++].setHSV(kBassHue, 255, beatVisIntensity_);
+        setHSV(ledIndex++, kBassHue, 255, beatVisIntensity_);
     }
 
     // Show frequency intensities on the remaining Leds
@@ -85,7 +116,7 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
     {
         for (int j = 0; j < numFreqLeds; j++)
         {
-            ledStrip_[ledIndex++].setHSV(color, 255, lightness[k]);
+            setHSV(ledIndex++, color, 255, freqBinLightness[k]);
             color += colorStep;
         }
 
@@ -94,7 +125,7 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
         {
             if (numExtraLeds % 2 == 1)
             {
-                ledStrip_[ledIndex++].setHSV(color, 255, lightness[k]);
+                setHSV(ledIndex++, color, 255, freqBinLightness[k]);
                 color += colorStep;
             }
         }
@@ -105,7 +136,7 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
     {
         for (int j = 0; j < numFreqLeds; j++)
         {
-            ledStrip_[ledIndex++].setHSV(color, 255, lightness[k]);
+            setHSV(ledIndex++, color, 255, freqBinLightness[k]);
             color -= colorStep;
         }
     }
@@ -113,30 +144,81 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
     // Show beat detection at the end of the strip
     for (int i = 0; i < numBassLeds; i++)
     {
-        ledStrip_[ledIndex++].setHSV(kBassHue, 255, beatVisIntensity_);
+        setHSV(ledIndex++, kBassHue, 255, beatVisIntensity_);
     }
+}
 
-    FastLED.show();
-
-    // If user presses ButtonB, print the current lightness array
-    M5.BtnB.read();
-
-    if (userTriggerB_ == 0)
+void LightingProcessor::sparkleFx()
+{
+    for (int x = 0; x < sizeof(sparkle_led); x++)
     {
-        if (M5.BtnB.isPressed())
+        if (sparkle_delay[x] == 0 && sparkle_step[x] == 0)
         {
-            userTriggerB_ = 5;
+            srand(time(NULL));
+            uint8_t randStart = rand() % 75;
+            sparkle_delay[x] = randStart + 25;
+            sparkle_led[x] = rand() % (kNumLeds - 2) + 1;
         }
-    }
-    else
-    {
-        if (userTriggerB_ == 1)
+        else if (sparkle_delay[x] > 0)
         {
-            for (uint8_t i = 0; i < kFreqBandCount; i++)
+            if (--sparkle_delay[x] == 0)
             {
-                Serial.printf("LED %i = %i\n", i, lightness[i]);
+                sparkle_step[x] = 1;
             }
         }
-        userTriggerB_ -= 1;
+
+        switch (sparkle_step[x])
+        {
+        case 0:
+            return;
+        case 1:
+            sparkle_brightness[x] = ledStripV[sparkle_led[x]];
+            sparkle_saturation[x] = 200;
+            sparkle_hue[x] = ledStripH[sparkle_led[x]];
+            ledStrip_[sparkle_led[x]].setHSV(sparkle_hue[x], sparkle_saturation[x], sparkle_brightness[x]);
+            sparkle_step[x]++;
+            break;
+        case 2:
+            sparkle_brightness[x] > 205 ? sparkle_brightness[x] = 255 : sparkle_brightness[x] += 50;
+            sparkle_saturation[x] -= 50;
+            ledStrip_[sparkle_led[x]-1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]].setHSV(sparkle_hue[x], sparkle_saturation[x], sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]+1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            if (sparkle_saturation[x] == 0)
+                sparkle_step[x]++;
+            break;
+        case 12:
+            sparkle_brightness[x] -= 20;
+            sparkle_saturation[x] += 5;
+            ledStrip_[sparkle_led[x]-1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]].setHSV(sparkle_hue[x], sparkle_saturation[x], sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]+1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            if (sparkle_brightness[x] < 50)
+                sparkle_step[x] = 0;
+            break;
+        default:
+            ledStrip_[sparkle_led[x]-1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]].setHSV(sparkle_hue[x], sparkle_saturation[x], sparkle_brightness[x]);
+            ledStrip_[sparkle_led[x]+1].setHSV(sparkle_hue[x], sparkle_saturation[x]+100, sparkle_brightness[x]);
+            sparkle_step[x]++;
+        }
     }
+}
+
+void LightingProcessor::constantFx(String val)
+{
+    uint8_t val_i = val.toInt();
+
+    for (int i = 0; i < kNumLeds; i++)
+    {
+        ledStrip_[i].setHSV(val_i, 255, 255);
+    }
+}
+
+void LightingProcessor::setHSV(u_int8_t index, uint8_t H, uint8_t S, uint8_t V)
+{
+    ledStrip_[index].setHSV(H, S, V);
+    ledStripH[index] = H;
+    ledStripS[index] = S;
+    ledStripV[index] = V;
 }

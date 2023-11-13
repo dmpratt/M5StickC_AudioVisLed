@@ -29,12 +29,10 @@
 FFTProcessor fftProcessor;
 LightingProcessor light;
 BluetoothSerial SerialBT;
-String btData;
 
 void setup()
 {
-  btData = "";
-  SerialBT.begin("DJ Lights");
+  SerialBT.begin("DJ Lights 1");
   log_d("M5.begin!");
   M5.begin();
 
@@ -42,7 +40,7 @@ void setup()
   M5.Lcd.fillScreen(BLACK);
 
   M5.Lcd.setTextSize(4);
-  M5.Lcd.setTextColor(WHITE, BLUE);
+  M5.Lcd.setTextColor(BLUE, BLACK);
   M5.Lcd.println("DJ Lights ");
 
   fftProcessor.setupI2Smic();
@@ -57,6 +55,7 @@ void setup()
 
 void loop()
 {
+  String btData;
   if (SerialBT.available())
   {
     btData = SerialBT.readString();
@@ -65,4 +64,13 @@ void loop()
 
   fftProcessor.loop();
   light.updateLedStrip(fftProcessor.getLightness(), fftProcessor.getBeatHit(), btData);
+
+  M5.update();
+  if(M5.BtnB.wasPressed()) {
+    int *lightness = fftProcessor.getLightness();
+    for (uint8_t i = 0; i < sizeof(lightness); i++)
+    {
+        Serial.printf("LED %i = %i\n", i, lightness[i]);
+    }
+  }
 }

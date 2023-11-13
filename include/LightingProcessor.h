@@ -8,6 +8,10 @@
 class LightingProcessor
 {
 private:
+    void mainSoundFx();
+    void sparkleFx();
+    void constantFx(String val);
+    void setHSV(u_int8_t index, uint8_t H, uint8_t S, uint8_t V);
 public:
     LightingProcessor();
 
