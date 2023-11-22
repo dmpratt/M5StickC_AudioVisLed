@@ -444,10 +444,6 @@ void FFTProcessor::loop()
     // Detect magnitude peak
     isBeatHit = (((diff1 >= kBeatThreshold) && (diff2 < 0)) || ((diff1 > 0) && (diff2 <= -kBeatThreshold)));
 
-    // ----- Update the Led strip -----
-    uint8_t i = 0;
-    uint8_t ledIndex = 0;
-
     // Determine current consumption from USB
     float vBusCurrent = M5.Axp.GetVBusCurrent();
 
