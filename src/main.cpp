@@ -32,7 +32,7 @@ BluetoothSerial SerialBT;
 
 void setup()
 {
-  SerialBT.begin("DJ Lights 1");
+  SerialBT.begin("DJ Lights 2");
   log_d("M5.begin!");
   M5.begin();
 

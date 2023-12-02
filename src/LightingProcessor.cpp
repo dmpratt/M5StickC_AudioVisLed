@@ -20,7 +20,11 @@ enum PrimaryDisplays
     Solid
 };
 
-enum DisplayModifiers { None, Sparkle };
+enum DisplayModifiers
+{
+    None,
+    Sparkle
+};
 
 uint8_t displayPrimary = PrimaryDisplays::Default;
 uint8_t displayPrimaryAttribute1 = 0; // to be interpreted by primary display
@@ -113,9 +117,28 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
         mode.toLowerCase();
 
         if (mode == "default")
+        {
+            uint8_t colorStart = 30; // Orange-Yellow
+            uint8_t colorEnd = 210;  // Purple
+            uint8_t colorStep = floor((colorEnd - colorStart) / (numFreqLeds * kFreqBandCount));
             displayPrimary = PrimaryDisplays::Default;
+        }
         else if (mode == "christmas")
+        {
+            colorOneStart = 250; // Red
+            colorTwoStart = 80;  // Green
+            kBassHue = 160;      // Blueish
+            colorStep = 1;
             displayPrimary = PrimaryDisplays::TwoTone;
+        }
+        else if (mode == "barbie")
+        {
+            colorOneStart = 200; // Purple
+            colorTwoStart = 234; // Pink
+            kBassHue = 175;      //
+            colorStep = 1;
+            displayPrimary = PrimaryDisplays::TwoTone;
+        }
         else if (mode == "sparkle")
             displayModifier = (displayModifier == DisplayModifiers::Sparkle) ? DisplayModifiers::None : DisplayModifiers::Sparkle;
         else if (mode.indexOf('-') >= 0)
@@ -195,7 +218,6 @@ void LightingProcessor::twoToneSoundFx()
 
     // Show frequency intensities on the remaining Leds
     uint8_t color = colorOneStart;
-    colorStep = 2;
     for (int k = 0; k < kFreqBandCount; k++)
     {
         if (k % 10 == 0)
