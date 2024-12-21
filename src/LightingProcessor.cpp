@@ -17,7 +17,8 @@ enum PrimaryDisplays
 {
     Default,
     TwoTone,
-    Solid
+    Solid,
+    Off
 };
 
 enum DisplayModifiers
@@ -26,7 +27,7 @@ enum DisplayModifiers
     Sparkle
 };
 
-uint8_t displayPrimary = PrimaryDisplays::Default;
+uint8_t displayPrimary = PrimaryDisplays::Off;
 uint8_t displayPrimaryAttribute1 = 0; // to be interpreted by primary display
 uint8_t displayModifier = DisplayModifiers::None;
 
@@ -154,6 +155,10 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
                 displayPrimary = PrimaryDisplays::Solid;
             }
         }
+        else if (mode == "black")
+        {
+            displayPrimary = PrimaryDisplays::Off;
+        }
 
         Serial.printf("Mode = %i, Modifier = %i, Extra = %i\n", displayPrimary, displayModifier, displayPrimaryAttribute1);
     }
@@ -163,7 +168,9 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
     else if (displayPrimary == PrimaryDisplays::TwoTone)
         twoToneSoundFx();
     else if (displayPrimary == PrimaryDisplays::Solid)
-        constantFx(displayPrimaryAttribute1);
+        constantFx(displayPrimaryAttribute1, 255);
+    else if (displayPrimary == PrimaryDisplays::Off) 
+        constantFx(0, 0);
 
     if (displayModifier == DisplayModifiers::Sparkle)
         sparkleFx();
@@ -301,11 +308,11 @@ void LightingProcessor::sparkleFx()
     }
 }
 
-void LightingProcessor::constantFx(uint8_t val)
+void LightingProcessor::constantFx(uint8_t val, uint8_t brightness)
 {
     for (int i = 0; i < kNumLeds; i++)
     {
-        ledStrip_[i].setHSV(val, 255, 255);
+        ledStrip_[i].setHSV(val, 255, brightness);
     }
 }
 

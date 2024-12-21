@@ -32,7 +32,7 @@ BluetoothSerial SerialBT;
 
 void setup()
 {
-  SerialBT.begin("DJ Lights 2");
+  SerialBT.begin("DJ Lights black");
   log_d("M5.begin!");
   M5.begin();
 
@@ -42,6 +42,7 @@ void setup()
   M5.Lcd.setTextSize(4);
   M5.Lcd.setTextColor(BLUE, BLACK);
   M5.Lcd.println("DJ Lights ");
+  M5.Lcd.println(" (black)  ");
 
   fftProcessor.setupI2Smic();
   fftProcessor.setupSpectrumAnalysis();
