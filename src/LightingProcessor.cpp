@@ -29,6 +29,8 @@ enum DisplayModifiers
 
 uint8_t displayPrimary = PrimaryDisplays::Off;
 uint8_t displayPrimaryAttribute1 = 0; // to be interpreted by primary display
+uint8_t displayPrimaryAttribute2 = 0; 
+uint8_t displayPrimaryAttribute3 = 0; 
 uint8_t displayModifier = DisplayModifiers::None;
 
 /* ----- Fastled variables -----
@@ -61,7 +63,9 @@ uint8_t colorStep = floor((colorEnd - colorStart) / (numFreqLeds * kFreqBandCoun
 
 // 2-tone mode
 uint8_t colorOneStart = 250; // Red
+uint8_t saturationOne = 255; // 100%
 uint8_t colorTwoStart = 80;  // Green
+uint8_t saturationTwo = 255; // 100%
 
 /* ------ Sparkle Vars ------ */
 uint8_t sparkle_delay[1];
@@ -127,7 +131,9 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
         else if (mode == "christmas")
         {
             colorOneStart = 250; // Red
+            saturationOne = 255; // Full
             colorTwoStart = 80;  // Green
+            saturationTwo = 255; // Full
             kBassHue = 160;      // Blueish
             colorStep = 1;
             displayPrimary = PrimaryDisplays::TwoTone;
@@ -135,8 +141,20 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
         else if (mode == "barbie")
         {
             colorOneStart = 200; // Purple
+            saturationOne = 255; // Full
             colorTwoStart = 234; // Pink
+            saturationTwo = 255; // Full
             kBassHue = 175;      //
+            colorStep = 1;
+            displayPrimary = PrimaryDisplays::TwoTone;
+        }
+        else if (mode == "usa")
+        {
+            colorOneStart = 250; // Red
+            saturationOne = 255; // Full
+            colorTwoStart = 255;   // Does not matter
+            saturationTwo = 0;   // White
+            kBassHue = 160;      // Blueish
             colorStep = 1;
             displayPrimary = PrimaryDisplays::TwoTone;
         }
@@ -144,11 +162,22 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
             displayModifier = (displayModifier == DisplayModifiers::Sparkle) ? DisplayModifiers::None : DisplayModifiers::Sparkle;
         else if (mode.indexOf('-') >= 0)
         {
-            String key = mode.substring(0, mode.indexOf('-'));
+            String key = mode.substring(0, mode.indexOf(' '));
             key.trim();
-            String value = mode.substring(mode.indexOf('-') + 1);
-            value.trim();
-            displayPrimaryAttribute1 = value.toInt();
+            String remainingValues = mode.substring(mode.indexOf(' ') + 1);
+
+            String dpa1 = remainingValues.substring(0, remainingValues.indexOf(','));
+            dpa1.trim();
+            displayPrimaryAttribute1 = dpa1.toInt();
+
+            remainingValues = remainingValues.substring(remainingValues.indexOf(',') + 1);
+            String dpa2 = remainingValues.substring(0, remainingValues.indexOf(','));
+            dpa2.trim();
+            displayPrimaryAttribute2 = dpa2.toInt();
+
+            String dpa3 = remainingValues.substring(remainingValues.indexOf(',') + 1);
+            dpa3.trim();
+            displayPrimaryAttribute3 = dpa3.toInt();
 
             if (key == "solid")
             {
@@ -168,9 +197,9 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
     else if (displayPrimary == PrimaryDisplays::TwoTone)
         twoToneSoundFx();
     else if (displayPrimary == PrimaryDisplays::Solid)
-        constantFx(displayPrimaryAttribute1, 255);
+        constantFx(displayPrimaryAttribute1, displayPrimaryAttribute2, displayPrimaryAttribute3);
     else if (displayPrimary == PrimaryDisplays::Off) 
-        constantFx(0, 0);
+        constantFx(0, 255, 0);
 
     if (displayModifier == DisplayModifiers::Sparkle)
         sparkleFx();
@@ -225,21 +254,24 @@ void LightingProcessor::twoToneSoundFx()
 
     // Show frequency intensities on the remaining Leds
     uint8_t color = colorOneStart;
+    uint8_t saturation = saturationOne;
     for (int k = 0; k < kFreqBandCount; k++)
     {
         if (k % 10 == 0)
         {
             color = (beatModifier == 0) ? colorOneStart : colorTwoStart;
+            saturation = (beatModifier == 0) ? saturationOne : saturationTwo;
         }
         else if (k % 5 == 0)
         {
             color = (beatModifier == 0) ? colorTwoStart : colorOneStart;
+            saturation = (beatModifier == 0) ? saturationTwo : saturationOne;
         }
 
         for (int j = 0; j < numFreqLeds; j++)
         {
-            setHSV(ledIndex++, color, 255, freqBinLightness[k]);
-            setHSV(ledRevIndex--, color, 255, freqBinLightness[k]);
+            setHSV(ledIndex++, color, saturation, freqBinLightness[k]);
+            setHSV(ledRevIndex--, color, saturation, freqBinLightness[k]);
             color += colorStep;
         }
     }
@@ -308,11 +340,11 @@ void LightingProcessor::sparkleFx()
     }
 }
 
-void LightingProcessor::constantFx(uint8_t val, uint8_t brightness)
+void LightingProcessor::constantFx(uint8_t val, uint8_t saturation, uint8_t brightness)
 {
     for (int i = 0; i < kNumLeds; i++)
     {
-        ledStrip_[i].setHSV(val, 255, brightness);
+        ledStrip_[i].setHSV(val, saturation, brightness);
     }
 }
 
