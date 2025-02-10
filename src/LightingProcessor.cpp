@@ -160,7 +160,7 @@ void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String m
         }
         else if (mode == "sparkle")
             displayModifier = (displayModifier == DisplayModifiers::Sparkle) ? DisplayModifiers::None : DisplayModifiers::Sparkle;
-        else if (mode.indexOf('-') >= 0)
+        else if (mode.indexOf(',') >= 0)
         {
             String key = mode.substring(0, mode.indexOf(' '));
             key.trim();

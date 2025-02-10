@@ -463,14 +463,10 @@ void FFTProcessor::loop()
     // Show current consumption on display
     if (cycleNr_ == 1)
     {
-        int16_t cursorX = M5.Lcd.getCursorX();
-        int16_t cursorY = M5.Lcd.getCursorY();
-
+        M5.Lcd.setCursor(5, 80);
         M5.Lcd.setTextSize(2);
         M5.Lcd.setTextColor(WHITE, BLACK);
-        M5.Lcd.printf("%03.0f mA\n", maxCurrent_);
-
-        M5.Lcd.setCursor(cursorX, cursorY);
+        M5.Lcd.printf("%03.0f mA", maxCurrent_);
         maxCurrent_ = 0;
     }
 
