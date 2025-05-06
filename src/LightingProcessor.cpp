@@ -1,13 +1,13 @@
 #include "LightingProcessor.h"
 
 /* ----- From FFTProcessor ----- */
-const uint8_t kFreqBandCount = 20;
+const uint8_t kFreqBandCount = 60;
 
 /* ----- Fastled constants ----- */
 const uint8_t kPinLedStrip = 26; // M5StickC grove port, yellow cable
-const uint8_t kNumLeds = 139;
+const uint8_t kNumLeds = 144;
 const uint8_t kLedStripBrightness = 255;
-const uint32_t kMaxMilliamps = 2500;
+const uint32_t kMaxMilliamps = 9000;
 
 const uint8_t numFreqLeds = floor(kNumLeds / 2 / (kFreqBandCount + 1));                     // (139 / 2) = (69.5 / 21) = 3
 const uint8_t numBassLeds = floor(kNumLeds / 2) - kFreqBandCount * numFreqLeds;             // (139 / 2) = (69.5) - (20 * 3) = 9
