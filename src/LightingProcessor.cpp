@@ -1,11 +1,11 @@
 #include "LightingProcessor.h"
 
 /* ----- From FFTProcessor ----- */
-const uint8_t kFreqBandCount = 60;
+const uint8_t kFreqBandCount = 64;
 
 /* ----- Fastled constants ----- */
-const uint8_t kPinLedStrip = 26; // M5StickC grove port, yellow cable
-const uint8_t kNumLeds = 144;
+const uint8_t kPinLedStrip = 26; //32; // M5StickC grove port, white cable
+const uint8_t kNumLeds = 139;
 const uint8_t kLedStripBrightness = 255;
 const uint32_t kMaxMilliamps = 9000;
 
@@ -58,7 +58,7 @@ int *freqBinLightness;
 
 // Normal color cycling
 uint8_t colorStart = 30; // Orange-Yellow
-uint8_t colorEnd = 210;  // Purple
+uint8_t colorEnd = 255; // 210;  // Purple
 uint8_t colorStep = floor((colorEnd - colorStart) / (numFreqLeds * kFreqBandCount));
 
 // 2-tone mode
@@ -92,8 +92,8 @@ void LightingProcessor::setupLedStrip()
     ledStrip_[0].setHSV(60, 255, 255);
     FastLED.show();
 
-    Serial.printf("Total leds: %i, %i for each band and %i for bass. There are %i extras to be distributed.",
-                  kNumLeds, numFreqLeds, numBassLeds, numExtraLeds);
+    Serial.printf("Total leds: %i, %i for each band and %i for bass. Color step will be %i. There are %i extras to be distributed.",
+                  kNumLeds, numFreqLeds, numBassLeds, colorStep, numExtraLeds);
 }
 
 void LightingProcessor::updateLedStrip(int lightness[], bool isBeatHit, String modifier)

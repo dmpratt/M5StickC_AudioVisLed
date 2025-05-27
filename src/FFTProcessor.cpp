@@ -81,7 +81,7 @@ QueueHandle_t pI2S_Queue_ = nullptr;
 // const float kFreqBandStartHz = 20;
 // const float kFreqBandEndHz[kFreqBandCount] = {60, 250, 500, 2000, 4000, 6000, 20000};
 
-const uint8_t kFreqBandCount = 60;
+const uint8_t kFreqBandCount = 64;
 const float kFreqBandStartHz = 20;
 
 // Index:                                        0   1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19
@@ -90,19 +90,15 @@ const float kFreqBandStartHz = 20;
 
 // Index:                                     
 const float kFreqBandEndHz[kFreqBandCount] = {
-      23,   26,   30,   33,   36,   40,   43,   46,   50,   53,   56,    60,
-      75,   91,  107,  123,  139,  155,  170,  186,  202,  218,  234,   250,
-     270,  291,  312,  333,  354,  375,  395,  416,  437,  458,  479,   500,
-     625,  750,  875, 1000, 1125, 1250, 1375, 1500, 1625, 1750, 1875,  2000,
-    2166, 2333, 2500, 2666, 2833, 3000, 3166, 3333, 3500, 3666, 3833, 18000
+    66,112,158,204,250,275,300,325,350,375,400,425,450,475,500,546,593,640,687,734,781,828,875,921,968,1015,1062,1109,1156,1203,1250,1296,1343,1390,1437,1484,1531,1578,1625,1671,1718,1765,1812,1859,1906,1953,2000,2075,2150,2225,2300,2375,2450,2525,2600,2675,2750,2825,2900,2975,3050,3125,3200,20000
 };
 const float kFreqBandAmp[kFreqBandCount] = {
-0.3f,  0.3f,  0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f,
-0.2f,  0.2f,  0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f,
-0.3f,  0.3f,  0.3f, 0.3f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,
-0.4f,  0.4f,  0.5f, 0.5f, 0.8f, 0.8f, 0.8f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f,
-   1,     1,     1,    1,    1,    1,    1,    1,    1,    1,    1,    1
-};
+    0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 
+    0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.4f, 0.4f, 0.4f, 0.4f, 
+    0.4f, 0.4f, 0.4f, 0.5f, 0.8f, 0.8f, 0.8f, 0.8f, 1, 1, 1, 1, 1, 1, 
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 
+    .8f};
 
 
 fftData_t sensitivityFactor_ = 1;
@@ -117,7 +113,7 @@ uint16_t freqBandBinIdxEnd_[kFreqBandCount] = {0};
 uint16_t freqBandBinCount_[kFreqBandCount] = {0};
 
 /* ----- Beat detection constants and variables ----- */
-const uint8_t kBeatDetectBand = 0;
+const uint8_t kBeatDetectBand = 1;
 const float kBeatThreshold = 4.0f;
 float beatHist_[3] = {0.0f};
 bool isBeatHit = false;
